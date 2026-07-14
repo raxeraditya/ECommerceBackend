@@ -1,27 +1,29 @@
 # 🛒 E-Commerce Backend API
 
-A high-performance, modular RESTful e-commerce API built with **Bun**, **TypeScript**, **NestJS**, and **Prisma ORM**. Engineered with production-ready practices including structured Pino logging, type-safe validation, and JWT authentication.
+A high-performance, asynchronous RESTful API built with **NestJS 11**, **Bun v1.3**, and **Prisma ORM v7** using the **LibSQL database adapter**. Architected with strict DTO validation, JWT authentication, and structured Pino logging.
 
 ---
 
-## ⚡ Tech Stack
+## ⚡ Tech Stack & Tools
 
-* **Runtime:** [Bun](https://bun.sh/)
-* **Framework:** [NestJS](https://nestjs.com/) (TypeScript)
-* **Database & ORM:** PostgreSQL / MySQL + [Prisma ORM](https://www.prisma.io/)
-* **Authentication:** JWT (JSON Web Tokens) & Bcrypt
-* **Logging:** [Pino Logger](https://github.com/pinojs/pino) (`nestjs-pino`)
-* **Validation:** `class-validator` & `class-transformer`
+* **Runtime & Package Manager:** [Bun](https://bun.sh/) (v1.3.14)
+* **Framework:** [NestJS](https://nestjs.com/) (v11)
+* **Database & ORM:** [Prisma ORM](https://www.prisma.io/) (v7.8) with `@prisma/adapter-libsql` & `@libsql/client`
+* **Authentication:** `@nestjs/jwt` & `bcrypt`
+* **Logging:** [Pino](https://github.com/pinojs/pino) (`nestjs-pino`, `pino-http`, `pino-pretty`)
+* **Validation & Transformation:** `class-validator` & `class-transformer`
+* **Testing & Seeding:** `@faker-js/faker`, Jest
 
 ---
 
 ## ✨ Features
 
-* **Authentication & Authorization:** Secure user registration, password hashing, and JWT-based authentication.
-* **Product Management:** Efficient database query pagination, search filtering, and sorted listings.
-* **User Engagement:** Like and bookmark products with idempotent toggle operations.
-* **Structured Logging:** Asynchronous, non-blocking JSON logging using Pino for development and production telemetry.
-* **Type Safety:** Strict DTO validation with automatic runtime type casting for query parameters.
+* **⚡ Bun-Native Engine:** Uses Bun's fast watcher (`bun --watch`) and native package execution.
+* **🔒 Authentication:** Password hashing via `bcrypt` and stateless session verification with JWT.
+* **🗄️ LibSQL Integration:** Configured with modern Prisma v7 drivers and LibSQL / Turso database support.
+* **🔍 Clean Input Validation:** Global transformation pipe for URL queries, auto-converting strings to integers and sanitizing strings.
+* **📊 Asynchronous Structured Logging:** High-speed, non-blocking JSON logging using Pino with formatted console output in development via `pino-pretty`.
+* **🌱 Automated Database Seeding:** Integrated `@faker-js/faker` script for populating development environments.
 
 ---
 
@@ -29,8 +31,7 @@ A high-performance, modular RESTful e-commerce API built with **Bun**, **TypeScr
 
 ### Prerequisites
 
-* [Bun](https://bun.sh/) installed locally
-* PostgreSQL / MySQL database running
+* Ensure [Bun](https://bun.sh/) (v1.3.14 or higher) is installed globally.
 
 ### Installation & Setup
 
@@ -38,3 +39,14 @@ A high-performance, modular RESTful e-commerce API built with **Bun**, **TypeScr
    ```bash
    git clone git@github.com:raxeraditya/ECommerceBackend.git
    cd ECommerceBackend
+---
+
+## 🏗️ High-Level Architecture
+
+```text
+┌──────────────┐      ┌─────────────────────────┐      ┌─────────────────┐
+│              │      │     NestJS API Layer    │      │                 │
+│  Client App  │ ───► │  - Auth / JWT Guards    │ ───► │   LibSQL / DB   │
+│ (Next.js 16) │ ◄─── │  - Validation Pipes     │ ◄─── │   via Prisma    │
+│              │      │  - Async Pino Logger    │      │                 │
+└──────────────┘      └─────────────────────────┘      └─────────────────┘
