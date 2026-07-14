@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/main.ts",
-    "build": "bunx prisma generate && tsc",
+    "build": "DATABASE_URL=${DATABASE_URL:-\"file:./dev.db\"} bunx prisma generate && tsc",
     "start": "bunx prisma generate && bun src/main.ts",
     "db:generate": "bun --env-file=.env ./node_modules/.bin/prisma generate",
     "db:push": "bun --env-file=.env ./node_modules/.bin/prisma db push",
