@@ -1,0 +1,101 @@
+### ==========================================
+### ENVIRONMENT VARIABLES
+### ==========================================
+@baseUrl = http://localhost:3000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXJrODNuZmkwMDAwZHF2NGJ0MnVrdmtkIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzg0MDA4NTc0LCJleHAiOjE3ODQwOTQ5NzR9.wQAvQ2LvcCd7UIGKYxeWfxf40LWEZ4U3pErJsKhUcbs
+
+### ==========================================
+### 1. AUTH MODULE
+### ==========================================
+
+### User Registration
+POST {{baseUrl}}/api/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe"
+}
+
+###
+
+### User Login (Copy the returned token into @authToken above)
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+###
+
+### Get Authenticated User Profile
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 2. PRODUCTS MODULE
+### ==========================================
+
+### Fetch All Products (Default Pagination: page=1, limit=10)
+GET {{baseUrl}}/products
+Authorization: Bearer {{authToken}}
+
+###
+
+### Fetch Products with Custom Pagination & Search
+GET {{baseUrl}}/products?page=1&limit=5&search=chair
+Authorization: Bearer {{authToken}}
+
+###
+
+### Get Single Product by ID
+GET {{baseUrl}}/products/cmrj1t7wj000djiv4rmz51qtr
+Authorization: Bearer {{authToken}}
+
+###
+
+### Create a New Product
+POST {{baseUrl}}/products
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Wireless Mechanical Keyboard",
+  "description": "RGB Backlit keychron keyboard",
+  "price": 89.99,
+  "imageUrl": "https://example.com/keyboard.jpg"
+}
+
+
+### ==========================================
+### 3. LIKES MODULE
+### ==========================================
+
+### Toggle Like on a Product (Like / Unlike)
+POST {{baseUrl}}/likes/products/cmrj1t7wj000djiv4rmz51qtr
+Authorization: Bearer {{authToken}}
+
+###
+
+### Get Total Likes Count for a Product (Public/Protected)
+GET {{baseUrl}}/likes/products/cmrj1t7wj000djiv4rmz51qtr/count
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 4. BOOKMARKS MODULE
+### ==========================================
+
+### Toggle Bookmark on a Product (Save / Unsave)
+POST {{baseUrl}}/bookmarks/products/cm123prodid456
+Authorization: Bearer {{authToken}}
+
+###
+
+### Get All Bookmarked Products for Current Authenticated User
+GET {{baseUrl}}/bookmarks
+Authorization: Bearer {{authToken}}
