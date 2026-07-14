@@ -4,6 +4,8 @@
   "packageManager": "bun@1.3.14",
   "type": "module",
   "scripts": {
+    "postinstall": "bunx prisma generate",
+    "vercel-build": "bunx prisma generate && tsc",
     "dev": "bun --watch src/main.ts",
     "build": "DATABASE_URL=${DATABASE_URL:-\"file:./dev.db\"} bunx prisma generate && tsc",
     "start": "bunx prisma generate && bun src/main.ts",
