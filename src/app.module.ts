@@ -15,6 +15,9 @@ import { LikesModule } from "./likes/likes.module";
 import { LoggingMiddleware } from "./common/middleware/logging.middleware";
 import { LoggerModule } from "nestjs-pino";
 
+// 📍 Check if running locally (not on Vercel and in dev mode)
+const isLocalDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+
 @Module({
   imports: [
     UsersModule,
@@ -25,31 +28,30 @@ import { LoggerModule } from "nestjs-pino";
     LikesModule,
     LoggerModule.forRoot({
       pinoHttp: {
-        // 1. Prevents attaching the full req/res objects to custom logger messages (e.g., AuthService)
-        autoLogging: true, // keeps the automatic "request completed" line, but clean
+        // 1. Automatic request logging
+        autoLogging: true,
 
-        // 2. Custom format for HTTP request/response logs
-        customProps: () => ({}), // Removes automatic req binding from service logs
+        // 2. Custom format for HTTP logs
+        customProps: () => ({}),
 
-        // 3. Serializers control what gets printed for HTTP req/res
+        // 3. Hide heavy request header clutter from logs
         serializers: {
-          req: () => undefined, // Hides full req headers/params clutter from logs
+          req: () => undefined,
         },
 
-        // 4. Pretty print config for development
-        transport:
-          process.env.NODE_ENV !== "production"
-            ? {
-                target: "pino-pretty",
-                options: {
-                  colorize: true,
-                  singleLine: true,
-                  // Hide unwanted automatic Pino fields
-                  ignore: "pid,hostname,req,res",
-                  translateTime: "SYS:HH:MM:ss.l",
-                },
-              }
-            : undefined,
+        // 4. Use pino-pretty ONLY in local dev environment
+        // On Vercel, it defaults to standard synchronous JSON logging
+        transport: isLocalDev
+          ? {
+              target: "pino-pretty",
+              options: {
+                colorize: true,
+                singleLine: true,
+                ignore: "pid,hostname,req,res",
+                translateTime: "SYS:HH:MM:ss.l",
+              },
+            }
+          : undefined,
       },
     }),
   ],
@@ -63,7 +65,7 @@ import { LoggerModule } from "nestjs-pino";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Applies logging to ALL routes
+    // Applies logging middleware to ALL routes
     consumer.apply(LoggingMiddleware).forRoutes("*");
   }
 }

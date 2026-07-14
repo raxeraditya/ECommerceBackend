@@ -1,33 +1,64 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
-import { Logger } from "nestjs-pino"; // 👈 1. Import Logger from nestjs-pino
+import { Logger } from "nestjs-pino";
 import { AppModule } from "./app.module";
 
+// Cache the serverless application instance across cold starts
+let cachedApp: any;
+
 async function bootstrap() {
-  // 👈 2. Add bufferLogs: true to catch initial bootstrap logs
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  if (!cachedApp) {
+    const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  // 👈 3. Instruct NestJS to use Pino as the application logger
-  app.useLogger(app.get(Logger));
+    // Attach NestJS-Pino logger
+    app.useLogger(app.get(Logger));
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    );
 
-  const port = parseInt(process.env.PORT ?? "3000", 10) || 3000;
+    // Initialize the Nest application without binding to a TCP port
+    await app.init();
 
-  await app.listen(port, "0.0.0.0");
+    // Cache the underlying Express instance
+    cachedApp = app.getHttpAdapter().getInstance();
+  }
 
-  // 👈 4. Optional: Log startup with Pino instead of console.log
-  const logger = app.get(Logger);
-  logger.log(`Server running at http://localhost:${port}`);
+  return cachedApp;
 }
 
-bootstrap().catch((error) => {
-  console.error("Failed to start server:", error);
-  process.exit(1);
-});
+// 1. Export for Vercel Serverless Function Handler
+export default async function handler(req: any, res: any) {
+  const server = await bootstrap();
+  return server(req, res);
+}
+
+// 2. Local Development Runner (Runs app.listen only when executed directly via Bun/Node)
+if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+  async function runLocal() {
+    const app = await NestFactory.create(AppModule, { bufferLogs: true });
+    app.useLogger(app.get(Logger));
+
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    );
+
+    const port = parseInt(process.env.PORT ?? "3000", 10) || 3000;
+    await app.listen(port, "0.0.0.0");
+
+    const logger = app.get(Logger);
+    logger.log(`Server running locally at http://localhost:${port}`);
+  }
+
+  runLocal().catch((error) => {
+    console.error("Failed to start local server:", error);
+    process.exit(1);
+  });
+}
