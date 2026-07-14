@@ -1,6 +1,6 @@
 [build]
-  command = "npm run build"
-  publish = ".next"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+  # 1. Generate Prisma Client FIRST, then build NestJS with TypeScript
+  command = "npx prisma generate && npm run build"
+  
+  # 2. Tell Netlify where NestJS outputs compiled JavaScript code
+  publish = "dist"
