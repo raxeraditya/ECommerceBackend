@@ -1,49 +1,38 @@
-# ==========================================================
-# STAGE 1: The Builder (The messy workshop)
-# ==========================================================
+# ==========================================
+# STAGE 1: The Builder
+# ==========================================
 FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
-# Copy package manifests and lock files
-COPY package.json bun.lockb* ./
-COPY prisma ./prisma/
+# Install everything (including dev dependencies) to build the app
+COPY package.json bun.lock* ./
+RUN bun install --target=bun
 
-# Install EVERYTHING (including devDependencies so tsc can run)
-RUN bun install --frozen-lockfile
-
-# Copy the actual TypeScript source code
 COPY . .
-
-# Generate the Prisma client native to the Linux environment
-RUN bunx prisma generate
-
-# Compile TypeScript into plain JavaScript inside the /app/dist directory
+RUN DATABASE_URL="file:/tmp/dev.db" bun run prisma generate
 RUN bun run build
 
-# Remove development dependencies so ONLY production packages remain
-RUN bun install --production
-
-
-# ==========================================================
-# STAGE 2: The Runner (The clean retail store)
-# ==========================================================
+# ==========================================
+# STAGE 2: The Final Pure Runner
+# ==========================================
 FROM oven/bun:1-alpine AS runner
 WORKDIR /app
 
-# Setup low-privilege security identity
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+ENV NODE_ENV=production
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl
 
-# ONLY pull the hyper-optimized artifacts we actually need from the workshop
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
+# 1. Copy ONLY the package.json (leaving the lockfile behind)
+COPY package.json ./
+
+# 2. Install production dependencies and wipe the installation cache instantly
+RUN bun install --production --target=bun && rm -rf ~/.bun/install/cache
+
+# 3. Copy the compiled NestJS code and generated Prisma files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/generated ./src/generated
+COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
+COPY --from=builder /app/prisma ./prisma
 
-# Fast file ownership adjustment
-RUN chown -R appuser:appgroup /app
-USER appuser
-
+USER bun
 EXPOSE 3000
 
-# Boot the clean, compiled JavaScript app using Bun
 CMD ["bun", "run", "dist/main.js"]
