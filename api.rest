@@ -1,7 +1,8 @@
 ### ==========================================
 ### ENVIRONMENT VARIABLES
 ### ==========================================
-@baseUrl = https://ecommercebackend-fjw7.onrender.com
+# @baseUrl = https://ecommercebackend-fjw7.onrender.com
+@baseUrl = http://localhost:3000
 @authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXJrODNuZmkwMDAwZHF2NGJ0MnVrdmtkIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzg0MDI2NTIxLCJleHAiOjE3ODQxMTI5MjF9.JshHD1T3KR0dMug4UjFN2pT-DXXuiKgGrfZ8Wo50g7A
 
 ### ==========================================
