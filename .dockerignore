@@ -6,13 +6,6 @@ dist/
 .bun-cache/
 bun.lockb
 
-# ==========================================================
-# 2. Local Prisma / DB Artifacts
-# ==========================================================
-# Keeps your local generated client and SQLite DBs out of the container
-src/generated/
-*.db
-*.db-journal
 
 # ==========================================================
 # 3. Development, Testing & Environment Configuration
@@ -36,3 +29,14 @@ LICENSE
 .idea/
 .coverage/
 html/
+
+node_modules
+.git
+.gitignore
+dist
+coverage
+*.log
+.env
+.env.*
+Dockerfile
+README.md
