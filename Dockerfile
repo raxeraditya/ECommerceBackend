@@ -1,29 +1,49 @@
-# 1. Base Image: Official Alpine Bun 1.x image
-FROM oven/bun:1-alpine
-
-# 2. Set working directory
+# ==========================================================
+# STAGE 1: The Builder (The messy workshop)
+# ==========================================================
+FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
-# 3. Create non-root system user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# 4. Copy package manifests FIRST
+# Copy package manifests and lock files
 COPY package.json bun.lockb* ./
-
-# 5. Copy prisma directory so 'postinstall' hook finds schema.prisma
 COPY prisma ./prisma/
 
-# 6. Install dependencies (Triggers 'bunx prisma generate')
-RUN bun install
+# Install EVERYTHING (including devDependencies so tsc can run)
+RUN bun install --frozen-lockfile
 
-# 7. Copy the rest of the source code
-COPY --chown=appuser:appgroup . ./
+# Copy the actual TypeScript source code
+COPY . .
 
-# 8. Switch to non-root execution identity
+# Generate the Prisma client native to the Linux environment
+RUN bunx prisma generate
+
+# Compile TypeScript into plain JavaScript inside the /app/dist directory
+RUN bun run build
+
+# Remove development dependencies so ONLY production packages remain
+RUN bun install --production
+
+
+# ==========================================================
+# STAGE 2: The Runner (The clean retail store)
+# ==========================================================
+FROM oven/bun:1-alpine AS runner
+WORKDIR /app
+
+# Setup low-privilege security identity
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# ONLY pull the hyper-optimized artifacts we actually need from the workshop
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/generated ./src/generated
+
+# Fast file ownership adjustment
+RUN chown -R appuser:appgroup /app
 USER appuser
 
-# 9. Expose port
 EXPOSE 3000
 
-# 10. Start command
-CMD ["bun", "src/main.ts"]
+# Boot the clean, compiled JavaScript app using Bun
+CMD ["bun", "run", "dist/main.js"]

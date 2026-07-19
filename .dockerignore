@@ -1,15 +1,38 @@
-node_modules
-Dockerfile*
-docker-compose*
-.dockerignore
-.git
+# ==========================================================
+# 1. Local Package & Compilation Artifacts
+# ==========================================================
+node_modules/
+dist/
+.bun-cache/
+bun.lockb
+
+# ==========================================================
+# 2. Local Prisma / DB Artifacts
+# ==========================================================
+# Keeps your local generated client and SQLite DBs out of the container
+src/generated/
+*.db
+*.db-journal
+
+# ==========================================================
+# 3. Development, Testing & Environment Configuration
+# ==========================================================
+.env
+.env.*
+!.env.example
+.git/
 .gitignore
+.github/
 README.md
 LICENSE
-.vscode
-Makefile
-helm-charts
-.env
+
+# ==========================================================
+# 4. Linters, Formatters, & IDE Configs
+# ==========================================================
 .editorconfig
-.idea
-coverage*
+.prettierrc
+.eslintrc.js
+.vscode/
+.idea/
+.coverage/
+html/
