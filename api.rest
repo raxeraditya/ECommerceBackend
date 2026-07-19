@@ -30,11 +30,6 @@ Content-Type: application/json
   "password": "password123"
 }
 
-###
-
-### Get Authenticated User Profile
-GET {{baseUrl}}/auth/profile
-Authorization: Bearer {{authToken}}
 
 
 ### ==========================================
